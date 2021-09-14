@@ -23,9 +23,31 @@ class Albumentations:
             check_version(A.__version__, '1.0.3')  # version requirement
 
             self.transform = A.Compose([
-                A.Blur(p=0.1),
-                A.MedianBlur(p=0.1),
-                A.ToGray(p=0.01)],
+                A.RandomRotate90(p=0.8),
+                A.Perspective(scale=0.05, interpolation=2,
+                              fit_output=True, p=0.3),
+                A.ShiftScaleRotate(
+                    shift_limit=0.05,
+                    scale_limit=(-0.25, 0.08),
+                    rotate_limit=3,
+                    border_mode=1,
+                    p=0.9,
+                ),
+                A.transforms.ColorJitter(
+                    brightness=0.1, contrast=0.1, saturation=0.1, hue=0, p=0.8
+                ),
+                A.OneOf(
+                    [
+                        A.GaussNoise(var_limit=([10, 50]), p=1),
+                        A.MotionBlur(p=1),
+                        A.MedianBlur(blur_limit=3, p=1),
+                        A.GaussianBlur(blur_limit=(1, 3), p=1),
+                        A.ISONoise(p=1),
+                    ],
+                    p=0.5,
+                ),
+                A.CLAHE(p=0.2),
+            ],
                 bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
 
             logging.info(colorstr('albumentations: ') + ', '.join(f'{x}' for x in self.transform.transforms if x.p))
